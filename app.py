@@ -44,7 +44,7 @@ def home():
 def get_students():
     with get_db_connection() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-            cur.execute("SELECT * FROM  students ORDER BY id desc ")
+            cur.execute("SELECT * FROM  students ")
             students = cur.fetchall()   
             return jsonify([dict(s) for s in students])
 
@@ -57,23 +57,16 @@ def add_student():
     grade = data.get("grade")
 
     if not name or not age or not email or not grade:
-        return jsonify({"error": "missing fields: name, age, email required"})
+        return jsonify({"error": "missing fields: name, age, email required"}),400
 
     with get_db_connection() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
-            cur.execute("INSERT INTO students (name, age, email, grade) VALUES (%s, %s, %s, %s)", (name,age,email,grade))
+            cur.execute("INSERT INTO students (name, age, email, grade) VALUES (%s, %s, %s, %s) RETURNING *;", 
+                        (name,age,email,grade))
 
-        new_student = cur.fetchone()
-        conn.commit()
-        return jsonify(dict(new_student)),201
-
-
-
-
-
-
-
-
+            new_student = cur.fetchone()
+            conn.commit()
+            return jsonify(dict(new_student)),201
 
 
 
