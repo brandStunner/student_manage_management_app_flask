@@ -68,9 +68,37 @@ def add_student():
             conn.commit()
             return jsonify(dict(new_student)),201
 
+@app.route("/students/<int:student_id>", methods = ["PUT"])
+@app.route("/update/<int:student_id>", methods = ["PUT"]) 
 
+def update_student(student_id):
+    data = request.get_json()
+    name = data.get("name")
+    age = data.get("age")
+    email = data.get("email")
+    grade = data.get("grade")
 
+    if not name or not age or not email or not grade:
+        return jsonify({"error": "Missing fields: name, age, email, grade required"}), 400
 
+    with get_db_connection() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.DictCursor) as cur:
+            cur.execute(
+                """
+                UPDATE students
+                SET name = %s, age = %s, email = %s, grade = %s
+                WHERE id = %s
+                RETURNING *;
+                """,
+                (name, age, email, grade, student_id)
+            )
+            updated_student = cur.fetchone()
+            conn.commit()
+
+            if updated_student is None:
+                return jsonify({"error": "Student not found"}), 404
+
+            return jsonify(dict(updated_student)), 200
 
 if __name__ == "__main__":
     app.run(debug=True)
