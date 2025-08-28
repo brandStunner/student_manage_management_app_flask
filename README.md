@@ -110,8 +110,6 @@ CREATE TABLE students (
 );
 ```
 
-> **Note**: The API expects a `grade` field in POST requests, but it's not in the current table schema. You may need to add: `grade VARCHAR(10)`
-
 ## 📦 Dependencies
 
 ```
